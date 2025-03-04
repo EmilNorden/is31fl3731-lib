@@ -163,9 +163,9 @@ mod tests {
     fn test_audio_sync_false() {
         let mut i2c = Mock::new(&[
             Transaction::write(Address::GND as u8,
-                                                            vec![ISSI_COMMAND_REGISTER, ISSI_BANK_FUNCTION_REGISTER]),
+                               vec![ISSI_COMMAND_REGISTER, ISSI_BANK_FUNCTION_REGISTER]),
             Transaction::write(Address::GND as u8,
-                                                            vec![ISSI_REG_AUDIOSYNC, 0]),
+                               vec![ISSI_REG_AUDIOSYNC, 0]),
         ]);
 
         let mut sut = IS31FL3731 {
@@ -183,9 +183,9 @@ mod tests {
     fn test_audio_sync_true() {
         let mut i2c = Mock::new(&[
             Transaction::write(Address::GND as u8,
-                                                            vec![ISSI_COMMAND_REGISTER, ISSI_BANK_FUNCTION_REGISTER]),
+                               vec![ISSI_COMMAND_REGISTER, ISSI_BANK_FUNCTION_REGISTER]),
             Transaction::write(Address::GND as u8,
-                                                            vec![ISSI_REG_AUDIOSYNC, 1]),
+                               vec![ISSI_REG_AUDIOSYNC, 1]),
         ]);
 
         let mut sut = IS31FL3731 {
