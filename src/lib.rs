@@ -1,8 +1,8 @@
 use embedded_hal::delay::DelayNs;
 use embedded_hal::i2c::I2c;
 
-const MATRIX_WIDTH:u8 = 16;
-const MATRIX_HEIGHT:u8 = 9;
+const MATRIX_WIDTH:usize = 16;
+const MATRIX_HEIGHT:usize = 9;
 const ISSI_COMMAND_REGISTER:u8 = 0xFD;
 const ISSI_BANK_FUNCTION_REGISTER:u8 = 0x0B;
 const ISSI_REG_SHUTDOWN:u8 = 0x0A;
@@ -38,7 +38,7 @@ where
             i2c,
             delay,
             frame: 0,
-            address
+            address,
         }
     }
 
@@ -69,6 +69,16 @@ where
         for x in 0..6 {
             erase_buf[0] = 0x24 + x*24;
             self.i2c.write(self.address as u8, &erase_buf)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn set_pwm_by_index(&mut self, index: usize, pwm: u8, frame: u8) -> Result<(), I2cError> {
+        if index < MATRIX_HEIGHT*MATRIX_WIDTH {
+            const PWM_OFFSET:usize = 0x24;
+
+            self.write_register(frame, (PWM_OFFSET + index) as u8, pwm)?;
         }
 
         Ok(())
@@ -196,6 +206,31 @@ mod tests {
         };
 
         sut.audio_sync(true).unwrap();
+        i2c.done();
+    }
+
+    #[test]
+    fn test_set_pwm_by_index() {
+        let mut i2c = Mock::new(&[
+            Transaction::write(Address::GND as u8,
+                               vec![ISSI_COMMAND_REGISTER, 4]),
+            Transaction::write(Address::GND as u8,
+                               vec![0x24, 128]),
+            Transaction::write(Address::GND as u8,
+                               vec![ISSI_COMMAND_REGISTER, 5]),
+            Transaction::write(Address::GND as u8,
+                               vec![0x24 + 50, 255]),
+        ]);
+
+        let mut sut = IS31FL3731 {
+            i2c: i2c.clone(),
+            delay: DelayStub{},
+            frame: 0,
+            address: Address::GND,
+        };
+
+        sut.set_pwm_by_index(0, 128, 4).unwrap();
+        sut.set_pwm_by_index(50, 255, 5).unwrap();
         i2c.done();
     }
 }
